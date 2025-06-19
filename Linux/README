@@ -1,0 +1,22 @@
+*Linux services:
+
+Check if service is running or port is open.
+Macro can handle multiple services, but it needs 3 values, comma separated, each service separated by semicolon. Example macro setup:
+
+{$SERVICE_CHECK} = java,,;;,run,/usr/something.py
+This checks if java is present in any status, and something.py is in run state.
+
+Triggers if returns 0 (enumerates services, so 0 named services are in named status)
+
+{$PORT_CHECK} = 22,tcp;3306,tcp;6379,udp
+This checks if tcp 22, tcp 3306 and udp 6379 is open.
+
+Triggers if returns 0 (means port is not open)
+
+*Linux log monitoring:
+
+Checks if specified logfile includes filter (regex), triggers with specified severity: 1-info, 2-warning, 3-average, 4-high, 5-disaster
+Accepts multiple entries (either same file with different filter, or different file entirely), json format
+{$LOGCHECK} = {"data":[{"{#LOGFILE}":"/var/log/syslog","{#FILTER}":"[bB]ig[eE]rror[0-9]","{#SEVERITY}":"5"},{"{#LOGFILE}":"","{#FILTER}":"[sS]mall[eE]rror[a-zA-Z0-9]*","{#SEVERITY}":"3"}]}
+
+Triggers if filter is input into the logfile.
