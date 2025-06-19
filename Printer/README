@@ -1,0 +1,1 @@
+Aside generic SNMP, it reads error messages, but due to the nature of SNMP on some printers, the errors do not stick, but rather the printer creates a new error with a new SNMP id, creating a new trigger on zabbix as well and removing the old one. Can be spammy.
