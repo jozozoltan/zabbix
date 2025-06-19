@@ -1,0 +1,20 @@
+# Set up on ILO:
+
+## New item:
+
+External check:
+ilo2_laststate.sh["-a","{HOST.IP}", "-c","{$SNMP_COMMUNITY}"]
+Text
+
+## New triggers:
+
+Information
+OS is on Standby	
+last(/Template Server HP iLO SNMPv2/ilo2_laststate.sh["-a","{HOST.IP}", "-c","{$SNMP_COMMUNITY}"],#1)="Standby"
+
+Information
+OS is on Shut down	
+last(/Template Server HP iLO SNMPv2/ilo2_laststate.sh["-a","{HOST.IP}", "-c","{$SNMP_COMMUNITY}"],#1)="Shut down"
+Enabled
+
+# Set up on VCenter
