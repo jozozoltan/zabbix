@@ -1,4 +1,4 @@
-*Linux services:
+# Linux services:
 
 Check if service is running or port is open.
 Macro can handle multiple services, but it needs 3 values, comma separated, each service separated by semicolon. Example macro setup:
@@ -13,7 +13,7 @@ This checks if tcp 22, tcp 3306 and udp 6379 is open.
 
 Triggers if returns 0 (means port is not open)
 
-*Linux log monitoring:
+# Linux log monitoring:
 
 Checks if specified logfile includes filter (regex), triggers with specified severity: 1-info, 2-warning, 3-average, 4-high, 5-disaster
 Accepts multiple entries (either same file with different filter, or different file entirely), json format
