@@ -17,4 +17,6 @@ OS is on Shut down
 last(/Template Server HP iLO SNMPv2/ilo2_laststate.sh["-a","{HOST.IP}", "-c","{$SNMP_COMMUNITY}"],#1)="Shut down"
 Enabled
 
-# Set up on VCenter
+# Set up on ESXi hosts:
+
+Add the ILO's Standby and Shutdown triggers as dependency to ESXi's "Host is down" triggers
