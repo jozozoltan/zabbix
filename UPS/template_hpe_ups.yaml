@@ -1,0 +1,281 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+    - uuid: 7df96b18c230490a9a0a9e2307226338
+      name: Templates
+  templates:
+    - uuid: b83953eba4e64bbc94d415860a62de6c
+      template: template_hpe_ups
+      name: template_hpe_ups
+      templates:
+        - name: 'Generic by SNMP'
+      groups:
+        - name: Templates
+      items:
+        - uuid: 72733b8a128f49819a7d36c6d51646a3
+          name: 'Battery Runtime left'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.232.165.3.2.1.0
+          key: BatteryRemaining
+          history: 90d
+          units: s
+          description: |
+            "Battery run time in seconds before UPS turns off due
+            to low battery."
+          tags:
+            - tag: Application
+              value: Status
+        - uuid: 65456e04646a43d8af27570325d20698
+          name: 'Battery Charge (percent)'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.232.165.3.2.4.0
+          key: BatteryRemainingPercent
+          history: 90d
+          units: '%'
+          description: 'Battery percent charge.'
+          tags:
+            - tag: Application
+              value: Status
+        - uuid: 16fb764bc2284df78a14952a61628130
+          name: 'Battery Status'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.232.165.3.2.5.0
+          key: BatteryStatus
+          history: 90d
+          description: |
+            Gives the status of the Advanced Battery Management;
+            batteryFloating(3) status means that the charger is temporarily
+            charging the battery to its float voltage; batteryResting(4) is the
+            state when the battery is fully charged and none of the other actions
+            (charging/discharging/floating) is being done.
+          valuemap:
+            name: 'HPE UPS Battery Status'
+          tags:
+            - tag: Application
+              value: Status
+          triggers:
+            - uuid: 11e8872ad5ac4f61b020cd51efd29318
+              expression: 'last(/template_hpe_ups/BatteryStatus,#3)>4'
+              recovery_mode: RECOVERY_EXPRESSION
+              recovery_expression: 'last(/template_hpe_ups/BatteryStatus,#3)<=4'
+              name: '{HOST.NAME} Battery status unknown'
+              priority: WARNING
+        - uuid: d116db217ebe4807947ed7c3660c797e
+          name: 'Device Name'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.232.165.1.2.5.0
+          key: DeviceName
+          history: 90d
+          value_type: TEXT
+          trends: '0'
+          description: 'A string identifying the device. it came from sysName entered by user'
+          tags:
+            - tag: Application
+              value: General
+        - uuid: 23e35ceb618b4f6b87b00fedfe76a6d0
+          name: 'Firmware Version'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.232.165.1.2.3.0
+          key: FirmwaveVersion
+          history: 90d
+          value_type: TEXT
+          trends: '0'
+          description: 'The device''s firmware version(s).'
+          tags:
+            - tag: Application
+              value: General
+        - uuid: 77a29e64cbcc4ef18d7ca0e2ac55c518
+          name: 'Hardware Version'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.232.165.1.2.4.0
+          key: HardwareVersion
+          history: 90d
+          value_type: TEXT
+          trends: '0'
+          description: 'The device''s hardware version.'
+          tags:
+            - tag: Application
+              value: General
+        - uuid: bdab62ad4435440e95e1f383acd5f82c
+          name: 'Input Current'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.232.165.3.3.4.1.3.1
+          key: InputCurrent
+          history: 90d
+          description: 'The measured input current from the UPS meters in amps.'
+          tags:
+            - tag: Application
+              value: Status
+        - uuid: 9c2210d9632e485abff429212994ad0e
+          name: 'Number of Input voltage or frequency errors'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.232.165.3.3.2.0
+          key: InputErrorCount
+          history: 90d
+          description: |
+            The number of times the Input was out of tolerance
+            in voltage or frequency.
+          tags:
+            - tag: Application
+              value: Status
+        - uuid: de8681fc475f4b558c6fdadd629367ca
+          name: 'Input Voltage'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.232.165.3.3.4.1.2.1
+          key: InputVoltage
+          history: 90d
+          description: 'The measured input voltage from the UPS meters in volts.'
+          tags:
+            - tag: Application
+              value: Status
+        - uuid: fb4efce241a745858b29363f912fd9ff
+          name: 'Input Watts'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.232.165.3.3.4.1.4.1
+          key: InputWatts
+          history: 90d
+          description: |
+            The measured input real power in watts. Most UPSs do not report
+            this XCP data
+          tags:
+            - tag: Application
+              value: Status
+        - uuid: cf403c24202b4538a1173530ac034371
+          name: 'MAC address.'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.232.165.1.2.8.0
+          key: MACAddress
+          history: 90d
+          value_type: TEXT
+          trends: '0'
+          description: 'The device''s MAC address.'
+          tags:
+            - tag: Application
+              value: General
+        - uuid: 144ad79a5b834e66a693c0781d0bb294
+          name: Manufacturer
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.232.165.1.2.1.0
+          key: Manufacturer
+          history: 90d
+          value_type: TEXT
+          trends: '0'
+          description: 'The device''s manufacturer.'
+          tags:
+            - tag: Application
+              value: General
+        - uuid: 299bd704779a4d49ba5250d0caa7f2e7
+          name: Model
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.232.165.1.2.2.0
+          key: Model
+          history: 90d
+          value_type: TEXT
+          trends: '0'
+          description: 'The device''s model.'
+          tags:
+            - tag: Application
+              value: General
+        - uuid: d0505e770b0744e1932aef4497ef0e50
+          name: 'Name of the HP Management Module.'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.232.165.1.1.5.0
+          key: ModuleName
+          history: 90d
+          value_type: TEXT
+          trends: '0'
+          description: 'A string contains the name of the HP Management Module.'
+          tags:
+            - tag: Application
+              value: General
+        - uuid: cc072eeffe8c41a19d5c2d7a079decbf
+          name: 'Part Number'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.232.165.1.2.6.0
+          key: PartNumber
+          history: 90d
+          value_type: TEXT
+          trends: '0'
+          description: 'The device''s part number.'
+          tags:
+            - tag: Application
+              value: General
+        - uuid: 673888554fe243448e64b1a0ba5f9846
+          name: 'Serial Number'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.232.165.1.2.7.0
+          key: SerialNumber
+          history: 90d
+          value_type: TEXT
+          trends: '0'
+          description: 'The device''s serial number.'
+          tags:
+            - tag: Application
+              value: General
+        - uuid: 97e62e39e08b4344bfa26e66da7a7e97
+          name: 'Serial number, Part number and Model name'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.232.165.1.1.4.0
+          key: snpnmn
+          history: 90d
+          value_type: TEXT
+          trends: '0'
+          description: |
+            A string details information about the UPS such as SN (serial number),
+            PN (part number), and MN (Model Name).
+          inventory_link: DATE_HW_PURCHASE
+          tags:
+            - tag: Application
+              value: General
+      tags:
+        - tag: target
+          value: ups
+      macros:
+        - macro: '{$BATTERY_ALERT}'
+          value: '20'
+        - macro: '{$BATTERY_ALERT_SECOND}'
+          value: '1800'
+        - macro: '{$BATTERY_WARN}'
+          value: '50'
+        - macro: '{$BATTERY_WARN_SECOND}'
+          value: '3000'
+      valuemaps:
+        - uuid: 5deb5ab85ba447b08fe274c4f5974e2e
+          name: 'HPE UPS Battery Status'
+          mappings:
+            - value: '1'
+              newvalue: batteryCharging
+            - value: '2'
+              newvalue: batteryDischarging
+            - value: '3'
+              newvalue: batteryFloating
+            - value: '4'
+              newvalue: batteryResting
+            - value: '5'
+              newvalue: unknown
+  triggers:
+    - uuid: de17e2071bc14172889ee50b3e41cde4
+      expression: 'last(/template_hpe_ups/BatteryStatus)=2 and (last(/template_hpe_ups/BatteryRemainingPercent)<{$BATTERY_ALERT} or last(/template_hpe_ups/BatteryRemaining)<{$BATTERY_ALERT_SECOND}) and last(/template_hpe_ups/BatteryRemaining)<>-1'
+      recovery_mode: RECOVERY_EXPRESSION
+      recovery_expression: 'last(/template_hpe_ups/BatteryStatus)<>2 or last(/template_hpe_ups/BatteryRemainingPercent)>{$BATTERY_ALERT}'
+      name: '{HOST.NAME} Battery charge less than {$BATTERY_ALERT}'
+      opdata: '{ITEM.LASTVALUE2} ({ITEM.LASTVALUE3 left)'
+      priority: DISASTER
+    - uuid: 2337be0bb08d4a9b8c9406ab1a451b6b
+      expression: 'last(/template_hpe_ups/BatteryStatus)=2 and (last(/template_hpe_ups/BatteryRemainingPercent)<{$BATTERY_WARN} or last(/template_hpe_ups/BatteryRemaining)<{$BATTERY_WARN_SECOND}) and last(/template_hpe_ups/BatteryRemaining)<>-1'
+      recovery_mode: RECOVERY_EXPRESSION
+      recovery_expression: 'last(/template_hpe_ups/BatteryStatus)<>2 or last(/template_hpe_ups/BatteryRemainingPercent)>{$BATTERY_WARN}'
+      name: '{HOST.NAME} Battery charge less than {$BATTERY_WARN}'
+      opdata: '{ITEM.LASTVALUE2} ({ITEM.LASTVALUE3 left)'
+      priority: HIGH
+      dependencies:
+        - name: '{HOST.NAME} Battery charge less than {$BATTERY_ALERT}'
+          expression: 'last(/template_hpe_ups/BatteryStatus)=2 and (last(/template_hpe_ups/BatteryRemainingPercent)<{$BATTERY_ALERT} or last(/template_hpe_ups/BatteryRemaining)<{$BATTERY_ALERT_SECOND}) and last(/template_hpe_ups/BatteryRemaining)<>-1'
+          recovery_expression: 'last(/template_hpe_ups/BatteryStatus)<>2 or last(/template_hpe_ups/BatteryRemainingPercent)>{$BATTERY_ALERT}'
+    - uuid: 90d87ebfbfc545379908f760cb0dc307
+      expression: 'last(/template_hpe_ups/BatteryStatus,#3)=2 and last(/template_hpe_ups/BatteryRemainingPercent)<>-1 and last(/template_hpe_ups/BatteryRemaining)<>-1'
+      recovery_mode: RECOVERY_EXPRESSION
+      recovery_expression: 'last(/template_hpe_ups/BatteryStatus,#3)<>2'
+      name: '{HOST.NAME} on Battery power'
+      opdata: '{ITEM.LASTVALUE2} ({ITEM.LASTVALUE3 left)'
+      priority: WARNING

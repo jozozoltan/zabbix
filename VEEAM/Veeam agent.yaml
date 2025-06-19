@@ -1,0 +1,108 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+    - uuid: a571c0d144b14fd4a87a9d9b2aa9fcd6
+      name: Templates/Applications
+  templates:
+    - uuid: cb927d399d4b4d70832d31571108eca7
+      template: 'Veeam agent'
+      name: 'Veeam agent'
+      groups:
+        - name: Templates/Applications
+      items:
+        - uuid: 79edaeb3273d4497bae1c45951e0be57
+          name: 'Veeam check'
+          key: 'system.run["powershell.exe -ExecutionPolicy Bypass -File C:\\Zagent\\check_veeamagent.ps1"]'
+          delay: 15m
+          history: 90d
+          value_type: TEXT
+          trends: '0'
+      discovery_rules:
+        - uuid: f96f7a41ed8a44cf9902e2cf1989b4c3
+          name: 'Veeam Backups Discovery'
+          type: DEPENDENT
+          key: vbck.discovery
+          delay: '0'
+          lifetime: 30d
+          enabled_lifetime_type: DISABLE_NEVER
+          item_prototypes:
+            - uuid: 00f9a2ce74814ab9b679632d83aba8be
+              name: '{#BCKNAME} Information'
+              type: CALCULATED
+              key: 'vbck.info["{#BCKNAME}"]'
+              history: 90d
+              value_type: TEXT
+              trends: '0'
+              params: '{#BCKINFO}'
+              tags:
+                - tag: target
+                  value: veeam
+            - uuid: ccbb6413d48b422888d973bfd84f2bb0
+              name: '{#BCKNAME} Last run'
+              type: CALCULATED
+              key: 'vbck.lastrun["{#BCKNAME}"]'
+              history: 90d
+              value_type: TEXT
+              trends: '0'
+              params: '{#BCKRUN}'
+              tags:
+                - tag: target
+                  value: veeam
+            - uuid: dbb8210557414ac2b7519fd9ec4b160a
+              name: '{#BCKNAME} Period'
+              type: CALCULATED
+              key: 'vbck.period["{#BCKNAME}"]'
+              history: 90d
+              value_type: TEXT
+              trends: '0'
+              params: '{#BCKPER}'
+              tags:
+                - tag: target
+                  value: veeam
+            - uuid: 47c660734ab34397a1a2b88019b75588
+              name: '{#BCKNAME} Status'
+              type: CALCULATED
+              key: 'vbck.status["{#BCKNAME}"]'
+              history: 90d
+              params: '{#BCKSTATUS}'
+              tags:
+                - tag: metric
+                  value: status
+                - tag: target
+                  value: veeam
+          trigger_prototypes:
+            - uuid: bf84dffba1804503b5265ebe23fbac6b
+              expression: 'last(/Veeam agent/vbck.status["{#BCKNAME}"])=3 and last(/Veeam agent/vbck.lastrun["{#BCKNAME}"])<>0 and last(/Veeam agent/vbck.period["{#BCKNAME}"])<>0 and last(/Veeam agent/vbck.info["{#BCKNAME}"])<>0'
+              name: '{#BCKNAME} backup job in failed state.'
+              opdata: '{ITEM.LASTVALUE4}, Last run: {ITEM.LASTVALUE2} (Period: {ITEM.LASTVALUE3})'
+              priority: HIGH
+              manual_close: 'YES'
+              tags:
+                - tag: target
+                  value: veeam
+            - uuid: 818257ae367844ff90ede87199340fdb
+              expression: 'last(/Veeam agent/vbck.status["{#BCKNAME}"])=2 and last(/Veeam agent/vbck.lastrun["{#BCKNAME}"])<>0 and last(/Veeam agent/vbck.period["{#BCKNAME}"])<>0 and last(/Veeam agent/vbck.info["{#BCKNAME}"])<>0'
+              name: '{#BCKNAME} backup job in warning state.'
+              opdata: '{ITEM.LASTVALUE4}, Last run: {ITEM.LASTVALUE2} (Period: {ITEM.LASTVALUE3})'
+              priority: WARNING
+              manual_close: 'YES'
+              tags:
+                - tag: target
+                  value: veeam
+          master_item:
+            key: 'system.run["powershell.exe -ExecutionPolicy Bypass -File C:\\Zagent\\check_veeamagent.ps1"]'
+      tags:
+        - tag: class
+          value: software
+        - tag: target
+          value: veeam
+      valuemaps:
+        - uuid: 925a33070d57406786fd1188da9e3e9a
+          name: 'Veeam Value mapping'
+          mappings:
+            - value: '1'
+              newvalue: Success
+            - value: '2'
+              newvalue: Warning
+            - value: '3'
+              newvalue: Error

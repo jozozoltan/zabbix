@@ -1,0 +1,73 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+    - uuid: 7df96b18c230490a9a0a9e2307226338
+      name: Templates
+  templates:
+    - uuid: 9f986368f43d4b8c8d1177be9c0e882a
+      template: 'NVIDIA by Zabbix Agent'
+      name: 'NVIDIA by Zabbix Agent'
+      groups:
+        - name: Templates
+      items:
+        - uuid: 8e9f409fa1c643a980308b396f332fdc
+          name: 'GPU Memory Used (0)'
+          key: 'gpu.memory[0]'
+          delay: 1s
+          history: 30d
+          units: B
+          preprocessing:
+            - type: MULTIPLIER
+              parameters:
+                - '1048576'
+        - uuid: 257fc349875343c2a7466dc934740850
+          name: 'GPU Memory Used (1)'
+          key: 'gpu.memory[1]'
+          delay: 1s
+          history: 30d
+          units: B
+          preprocessing:
+            - type: MULTIPLIER
+              parameters:
+                - '1048576'
+        - uuid: 83277dccec7943e0b6dbadf80eaf44ec
+          name: 'GPU Utilization (0)'
+          key: 'gpu.utilization[0]'
+          delay: 1s
+          history: 30d
+          units: '%'
+        - uuid: 54a4b2d0e88943498fdfd6a3c5063173
+          name: 'GPU Utilization (1)'
+          key: 'gpu.utilization[1]'
+          delay: 1s
+          history: 30d
+          units: '%'
+  graphs:
+    - uuid: 50c79b9f42d440209d891a574fa85e09
+      name: 'GPU Memory used'
+      graph_items:
+        - color: 199C0D
+          calc_fnc: ALL
+          item:
+            host: 'NVIDIA by Zabbix Agent'
+            key: 'gpu.memory[0]'
+        - sortorder: '1'
+          color: F63100
+          calc_fnc: ALL
+          item:
+            host: 'NVIDIA by Zabbix Agent'
+            key: 'gpu.memory[1]'
+    - uuid: 08793d4ea6d743b4ad31cb165b7e3ab5
+      name: 'GPU Utilization'
+      graph_items:
+        - color: 199C0D
+          calc_fnc: ALL
+          item:
+            host: 'NVIDIA by Zabbix Agent'
+            key: 'gpu.utilization[0]'
+        - sortorder: '1'
+          color: F63100
+          calc_fnc: ALL
+          item:
+            host: 'NVIDIA by Zabbix Agent'
+            key: 'gpu.utilization[1]'

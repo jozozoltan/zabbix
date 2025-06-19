@@ -1,0 +1,30 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+    - uuid: a58a16b3ce8845a1b93cc027ca73a173
+      name: Templates/Scripts
+  templates:
+    - uuid: 1357fa7890b74b02bcfbb7343a8ca34f
+      template: 'MS License Check by API'
+      name: 'MS License Check by API'
+      groups:
+        - name: Templates/Scripts
+      items:
+        - uuid: a7b3313d430d407288bfbc50d5d292ef
+          name: 'Last Check'
+          type: EXTERNAL
+          key: 'mslicensemonitor.sh["-i","{$APP_ID}","-s","{$CLIENT_SECRET}","-t","{$TENANT_ID}","-u","{$USER}","-c","{$LIC_CHECK}"]'
+          delay: 1h
+          value_type: TEXT
+          trends: '0'
+          triggers:
+            - uuid: d8c33dade4fd43c8b1a3a8f864102662
+              expression: 'find(/MS License Check by API/mslicensemonitor.sh["-i","{$APP_ID}","-s","{$CLIENT_SECRET}","-t","{$TENANT_ID}","-u","{$USER}","-c","{$LIC_CHECK}"],,"like","does NOT")=1'
+              name: 'MS Licence is missing from user!'
+              priority: AVERAGE
+      macros:
+        - macro: '{$APP_ID}'
+        - macro: '{$CLIENT_SECRET}'
+        - macro: '{$LIC_CHECK}'
+        - macro: '{$TENANT_ID}'
+        - macro: '{$USER}'

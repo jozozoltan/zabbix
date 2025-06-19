@@ -1,0 +1,114 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+    - uuid: a58a16b3ce8845a1b93cc027ca73a173
+      name: Templates/Scripts
+  templates:
+    - uuid: c81a0e43c8374b3ab44de9b13f5fcf1e
+      template: 'Power BI by API'
+      name: 'Power BI by API'
+      groups:
+        - name: Templates/Scripts
+      items:
+        - uuid: 4022749c833c46959c3ed6510ae38aec
+          name: 'Last Error Code'
+          type: DEPENDENT
+          key: powerbi.errorcode
+          delay: '0'
+          value_type: TEXT
+          trends: '0'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.serviceExceptionJson
+            - type: JSONPATH
+              parameters:
+                - $.errorCode
+          master_item:
+            key: 'powerbimonitor.sh["-i","{$APP_ID}","-s","{$CLIENT_SECRET}","-t","{$TENANT_ID}","-g","{$GROUP_ID}","-d","{$DATASET_ID}"]'
+        - uuid: be0f3a5542e84a028dacd041c00869c3
+          name: 'Last Error Description'
+          type: DEPENDENT
+          key: powerbi.errordesc
+          delay: '0'
+          value_type: TEXT
+          trends: '0'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.serviceExceptionJson
+            - type: JSONPATH
+              parameters:
+                - $.errorDescription
+          master_item:
+            key: 'powerbimonitor.sh["-i","{$APP_ID}","-s","{$CLIENT_SECRET}","-t","{$TENANT_ID}","-g","{$GROUP_ID}","-d","{$DATASET_ID}"]'
+        - uuid: 8b4d1dfecc5543c09163977d4309bda9
+          name: 'Last Refresh Type'
+          type: DEPENDENT
+          key: powerbi.refreshtype
+          delay: '0'
+          value_type: TEXT
+          trends: '0'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.refreshType
+          master_item:
+            key: 'powerbimonitor.sh["-i","{$APP_ID}","-s","{$CLIENT_SECRET}","-t","{$TENANT_ID}","-g","{$GROUP_ID}","-d","{$DATASET_ID}"]'
+        - uuid: e55a50789ae744d0a6dc4bc49715934b
+          name: 'Last Start Time'
+          type: DEPENDENT
+          key: powerbi.starttime
+          delay: '0'
+          value_type: FLOAT
+          trends: '0'
+          units: unixtime
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.startTime
+            - type: JAVASCRIPT
+              parameters:
+                - 'return Date.parse(value) / 1000;'
+          master_item:
+            key: 'powerbimonitor.sh["-i","{$APP_ID}","-s","{$CLIENT_SECRET}","-t","{$TENANT_ID}","-g","{$GROUP_ID}","-d","{$DATASET_ID}"]'
+          triggers:
+            - uuid: 9163fe709c10402d8f70cdddba83dd6b
+              expression: 'last(/Power BI by API/powerbi.starttime) < (now() - {$TIME_BETWEEN} * 3600)'
+              name: 'Last Start Time older than Scheduled time'
+              priority: AVERAGE
+        - uuid: 57af976fa2bc46b98821bd03ecf95a50
+          name: 'Last Status'
+          type: DEPENDENT
+          key: powerbi.status
+          delay: '0'
+          value_type: TEXT
+          trends: '0'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.status
+          master_item:
+            key: 'powerbimonitor.sh["-i","{$APP_ID}","-s","{$CLIENT_SECRET}","-t","{$TENANT_ID}","-g","{$GROUP_ID}","-d","{$DATASET_ID}"]'
+        - uuid: 9201262c16a849f59cef8e7d49e76886
+          name: 'Last Check'
+          type: EXTERNAL
+          key: 'powerbimonitor.sh["-i","{$APP_ID}","-s","{$CLIENT_SECRET}","-t","{$TENANT_ID}","-g","{$GROUP_ID}","-d","{$DATASET_ID}"]'
+          delay: 1h
+          value_type: TEXT
+          trends: '0'
+      macros:
+        - macro: '{$APP_ID}'
+        - macro: '{$CLIENT_SECRET}'
+        - macro: '{$DATASET_ID}'
+        - macro: '{$GROUP_ID}'
+        - macro: '{$TENANT_ID}'
+        - macro: '{$TIME_BETWEEN}'
+          value: '168'
+          description: 'In hours'
+  triggers:
+    - uuid: 884232f6da83405493556f7f3533ae82
+      expression: 'last(/Power BI by API/powerbi.status)="Failed" and (last(/Power BI by API/powerbi.errorcode)<>1 or last(/Power BI by API/powerbi.errordesc)<>1 or 1=1)'
+      name: 'PowerBI: Last Refresh Status failed'
+      opdata: '{ITEM.LASTVALUE2} ({ITEM.LASTVALUE3})'
+      priority: AVERAGE

@@ -1,0 +1,52 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+    - uuid: 7df96b18c230490a9a0a9e2307226338
+      name: Templates
+  templates:
+    - uuid: 38ea6a5099fe4f938e117e77e1612249
+      template: 'Instana Webhook Template'
+      name: 'Instana Webhook Template'
+      groups:
+        - name: Templates
+      items:
+        - uuid: 3929b9b5201840eb801591280a4971cb
+          name: 'Instana Alert'
+          type: TRAP
+          key: instana.alert
+          delay: '0'
+          value_type: TEXT
+          trends: '0'
+          triggers:
+            - uuid: 28778f8ce4b349fb849cdaf51669e745
+              expression: 'last(/Instana Webhook Template/instana.alert)<>last(/Instana Webhook Template/instana.alert,#2) and find(/Instana Webhook Template/instana.alert,#1,"like","| 5 |")=0 and find(/Instana Webhook Template/instana.alert,#1,"like","| 10 |")=0'
+              recovery_mode: NONE
+              name: '{ITEM.VALUE} !'
+              type: MULTIPLE
+              manual_close: 'YES'
+              tags:
+                - tag: source
+                  value: instana
+            - uuid: 65f609608c624b3489d664f63f1658e1
+              expression: 'last(/Instana Webhook Template/instana.alert)<>last(/Instana Webhook Template/instana.alert,#2) and find(/Instana Webhook Template/instana.alert,#1,"like","| 5 |")=1'
+              recovery_mode: NONE
+              name: '{ITEM.VALUE} !'
+              priority: WARNING
+              type: MULTIPLE
+              manual_close: 'YES'
+              tags:
+                - tag: source
+                  value: instana
+            - uuid: fbb4d1423d8f407f8b19e07cf18bee42
+              expression: 'last(/Instana Webhook Template/instana.alert)<>last(/Instana Webhook Template/instana.alert,#2) and find(/Instana Webhook Template/instana.alert,#1,"like","| 10 |")=1'
+              recovery_mode: NONE
+              name: '{ITEM.VALUE} !'
+              priority: HIGH
+              type: MULTIPLE
+              manual_close: 'YES'
+              tags:
+                - tag: source
+                  value: instana
+      tags:
+        - tag: source
+          value: instana

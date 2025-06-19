@@ -1,0 +1,292 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+    - uuid: 3de1fe18ccf04892af640c525c8ad724
+      name: 'Ethernet thermometer'
+  templates:
+    - uuid: a4fc6db5feba4b918e3e6029ac47b9d6
+      template: Template_STE2_r2_temp
+      name: Template_STE2_r2_temp
+      templates:
+        - name: 'Generic by SNMP'
+      groups:
+        - name: 'Ethernet thermometer'
+      items:
+        - uuid: c6f5f79f9e6e4f4786e04fbc696ced95
+          name: '1. Input Index'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.21796.4.9.1.1.1.1
+          key: 1InputIndex
+          delay: 5m
+          history: 90d
+          tags:
+            - tag: Application
+              value: Status
+        - uuid: b4e849d019ee46658ac9d48cbaf9cea2
+          name: '1. Input Name'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.21796.4.9.1.1.3.1
+          key: 1InputName
+          delay: 5m
+          history: 90d
+          value_type: TEXT
+          trends: '0'
+          tags:
+            - tag: Application
+              value: Status
+        - uuid: 24eab84ab5d54d0fb8d6918614564c39
+          name: '1. Input State'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.21796.4.9.1.1.4.1
+          key: 1InputState
+          delay: 5m
+          history: 90d
+          description: '0=Normal, 1=Alarm'
+          tags:
+            - tag: Application
+              value: Status
+        - uuid: e534211cde7345b7ad203478368f88f6
+          name: '1. Input Value'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.21796.4.9.1.1.2.1
+          key: 1InputValue
+          delay: 5m
+          history: 90d
+          description: '0=Open, 1=Close'
+          tags:
+            - tag: Application
+              value: Status
+        - uuid: 048dfac7ea27444d9297f7e95cd905af
+          name: '1. Sensor ID'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.21796.4.9.3.1.8.1
+          key: 1SensorID
+          delay: 5m
+          history: 90d
+          tags:
+            - tag: Application
+              value: Thermometer
+        - uuid: e29c1b00cdca45c2830071845bf2c85b
+          name: '1. Sensor Index'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.21796.4.9.3.1.1.1
+          key: 1SensorIndex
+          delay: 5m
+          history: 90d
+          tags:
+            - tag: Application
+              value: Thermometer
+        - uuid: c5b0263f783d4576bd0c63ab26e9ff46
+          name: '1. Sensor Name'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.21796.4.9.3.1.2.1
+          key: 1SensorName
+          delay: 5m
+          history: 90d
+          value_type: TEXT
+          trends: '0'
+          tags:
+            - tag: Application
+              value: Thermometer
+        - uuid: c6f75d1ec454470093870db4d5f5ee59
+          name: '1. Sensor SN'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.21796.4.9.3.1.6.1
+          key: 1SensorSN
+          delay: 5m
+          history: 90d
+          value_type: TEXT
+          trends: '0'
+          tags:
+            - tag: Application
+              value: Thermometer
+        - uuid: 8fb7e085883b44ac93a3688bc6ca6df6
+          name: '1. Sensor State'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.21796.4.9.3.1.3.1
+          key: 1SensorState
+          delay: 5m
+          history: 90d
+          tags:
+            - tag: Application
+              value: Thermometer
+        - uuid: 9309afe620a546619e2359d2f93a5a2c
+          name: '1. Sensor String Value'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.21796.4.9.3.1.4.1
+          key: 1SensorStringValue
+          delay: 5m
+          history: 90d
+          value_type: TEXT
+          trends: '0'
+          tags:
+            - tag: Application
+              value: Thermometer
+        - uuid: 343dcd226ce04abaa52a1b3ad5714e21
+          name: '1. Sensor Unit'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.21796.4.9.3.1.7.1
+          key: 1SensorUnit
+          delay: 5m
+          history: 90d
+          description: '1=C, 2=F, 3=K, 4=%'
+          tags:
+            - tag: Application
+              value: Thermometer
+        - uuid: 6ba4113aaf964369a7607473296a01a4
+          name: '1. Sensor Value'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.21796.4.9.3.1.5.1
+          key: 1SensorValue
+          delay: 5m
+          history: 90d
+          preprocessing:
+            - type: MULTIPLIER
+              parameters:
+                - '0.1'
+          tags:
+            - tag: Application
+              value: Thermometer
+          triggers:
+            - uuid: d5662641873044d3b7c48628c8b41dbb
+              expression: 'last(/Template_STE2_r2_temp/1SensorValue,#3)>{$TEMP_CRIT}'
+              recovery_mode: RECOVERY_EXPRESSION
+              recovery_expression: 'last(/Template_STE2_r2_temp/1SensorValue,#3)<{$TEMP_CRIT}'
+              name: 'Temperature is high on {HOST.NAME}'
+              priority: HIGH
+            - uuid: 27c9ab0c70f74456a39b7e759465906a
+              expression: 'last(/Template_STE2_r2_temp/1SensorValue,#3)>{$TEMP_HIGH}'
+              recovery_mode: RECOVERY_EXPRESSION
+              recovery_expression: 'last(/Template_STE2_r2_temp/1SensorValue,#3)<{$TEMP_HIGH}'
+              name: 'Temperature is high on {HOST.NAME}'
+              priority: INFO
+            - uuid: fbbc6d1faf0c4805a2315006d9f9b47c
+              expression: 'last(/Template_STE2_r2_temp/1SensorValue,#3)>{$TEMP_WARN}'
+              recovery_mode: RECOVERY_EXPRESSION
+              recovery_expression: 'last(/Template_STE2_r2_temp/1SensorValue,#3)<{$TEMP_WARN}'
+              name: 'Temperature is high on {HOST.NAME}'
+              priority: WARNING
+        - uuid: e8718a99f2d94a8c85bd8b4bdc003c91
+          name: '2. Input Index'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.21796.4.9.1.1.1.2
+          key: 2InputIndex
+          delay: 5m
+          history: 90d
+          tags:
+            - tag: Application
+              value: Status
+        - uuid: 47e8c4c7ca9b4510bcdc23262ec00a67
+          name: '2. Input Name'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.21796.4.9.1.1.3.2
+          key: 2InputName
+          delay: 5m
+          history: 90d
+          value_type: TEXT
+          trends: '0'
+          tags:
+            - tag: Application
+              value: Status
+        - uuid: beb3764a62b24e01aa3c7caeddf88638
+          name: '2. Input State'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.21796.4.9.1.1.4.2
+          key: 2InputState
+          delay: 5m
+          history: 90d
+          description: '0=Normal, 1=Alarm'
+          tags:
+            - tag: Application
+              value: Status
+        - uuid: 94ab74f8d9744c0f9d7f2487cf1e7943
+          name: '2. Input Value'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.21796.4.9.1.1.2.2
+          key: 2InputValue
+          delay: 5m
+          history: 90d
+          description: '0=Open, 1=Close'
+          tags:
+            - tag: Application
+              value: Status
+        - uuid: d3c45ec1c6334249a34144260bf32fb4
+          name: 'System Contact'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.2.1.1.4.0
+          key: SystemContact
+          delay: 5m
+          history: 90d
+          value_type: TEXT
+          trends: '0'
+          tags:
+            - tag: Application
+              value: General
+        - uuid: 4436713c6ccf4f0da35a921e6ef12442
+          name: 'System Description'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.2.1.1.1.0
+          key: SystemDescription
+          delay: 5m
+          history: 90d
+          value_type: TEXT
+          trends: '0'
+          tags:
+            - tag: Application
+              value: General
+        - uuid: c6c33ee3986948e9a2246fe3a099cfa3
+          name: 'System Location'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.2.1.1.6.0
+          key: SystemLocation
+          delay: 5m
+          history: 90d
+          value_type: TEXT
+          trends: '0'
+          tags:
+            - tag: Application
+              value: General
+        - uuid: 0f78fb85d27343e483000598db9e09d1
+          name: 'System MAC address'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.21796.4.9.70.1.0
+          key: SystemMACAddress
+          delay: 5m
+          history: 90d
+          value_type: TEXT
+          trends: '0'
+          tags:
+            - tag: Application
+              value: General
+        - uuid: 242ba28b23ec4b74b3c87e818d0378a0
+          name: 'System Name'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.2.1.1.5.0
+          key: SystemName
+          delay: 5m
+          history: 90d
+          value_type: TEXT
+          trends: '0'
+          tags:
+            - tag: Application
+              value: General
+      tags:
+        - tag: target
+          value: enviroment-sensor
+      macros:
+        - macro: '{$TEMP_CRIT}'
+          value: '35'
+        - macro: '{$TEMP_HIGH}'
+          value: '25'
+        - macro: '{$TEMP_WARN}'
+          value: '30'
+  graphs:
+    - uuid: 95d7d73b7455478f83a91cdccf34b40f
+      name: 'Sensor Value'
+      graph_items:
+        - sortorder: '1'
+          color: 199C0D
+          calc_fnc: ALL
+          item:
+            host: Template_STE2_r2_temp
+            key: 1SensorValue

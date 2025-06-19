@@ -1,0 +1,196 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+    - uuid: a571c0d144b14fd4a87a9d9b2aa9fcd6
+      name: Templates/Applications
+  templates:
+    - uuid: b7dce69c637c42b6bfa3be2989ee88b5
+      template: 'Veeam backup'
+      name: 'Veeam backup'
+      groups:
+        - name: Templates/Applications
+      items:
+        - uuid: 9147e5580e9f45c28440dac89c211c05
+          name: 'Veeam check'
+          key: 'system.run["powershell.exe -ExecutionPolicy Bypass -File C:\Zagent\check_veeambackup.ps1",nowait]'
+          delay: 15m
+          history: 90d
+          value_type: TEXT
+          trends: '0'
+          tags:
+            - tag: target
+              value: veeam
+        - uuid: 69d8acefab8f4684bb39efb9b6859213
+          name: 'Veeam check read'
+          key: 'vfs.file.contents["C:\ZAgent\veeamresult.txt",UTF-8]'
+          delay: 15m
+          history: 90d
+          value_type: TEXT
+          trends: '0'
+          tags:
+            - tag: target
+              value: veeam
+        - uuid: 91581102723f4109864181d1d3484d45
+          name: 'Last check'
+          key: 'vfs.file.time["C:\ZAgent\veeamresult.txt",modify]'
+          history: 90d
+          units: unixtime
+          tags:
+            - tag: metric
+              value: status
+            - tag: target
+              value: veeam
+          triggers:
+            - uuid: 37eb4e3d7cf04b5bb590901420c5447a
+              expression: 'last(/Veeam backup/vfs.file.time["C:\ZAgent\veeamresult.txt",modify]) < now() - 3600'
+              name: 'Last VEEAM check too old!'
+              opdata: '{ITEM.LASTVALUE1}'
+              priority: WARNING
+      discovery_rules:
+        - uuid: b2c8eb7bfd8e4963b9ca21e899b7a77d
+          name: 'Veeam Backups Discovery'
+          type: DEPENDENT
+          key: vbck.discovery
+          delay: '0'
+          lifetime_type: DELETE_IMMEDIATELY
+          lifetime: '0'
+          item_prototypes:
+            - uuid: 1feffa4cccf74ca5ae7c921e068f64e1
+              name: '{#BCKNAME} Information'
+              type: CALCULATED
+              key: 'vbck.info["{#BCKNAME}"]'
+              history: 90d
+              value_type: TEXT
+              trends: '0'
+              params: '{#BCKINFO}'
+              tags:
+                - tag: target
+                  value: veeam
+            - uuid: f822fb04281a415b95282a7633e169fb
+              name: '{#BCKNAME} Last run'
+              type: CALCULATED
+              key: 'vbck.lastrun["{#BCKNAME}"]'
+              history: 90d
+              value_type: TEXT
+              trends: '0'
+              params: '{#BCKRUN}'
+              tags:
+                - tag: target
+                  value: veeam
+            - uuid: b4752edf3a8645359bf36466df798ab7
+              name: '{#BCKNAME} Period'
+              type: CALCULATED
+              key: 'vbck.period["{#BCKNAME}"]'
+              history: 90d
+              value_type: TEXT
+              trends: '0'
+              params: '{#BCKPER}'
+              tags:
+                - tag: target
+                  value: veeam
+            - uuid: d9ee7dabd2b747b9a6e238c9b6be4b47
+              name: '{#BCKNAME} Status'
+              type: CALCULATED
+              key: 'vbck.status["{#BCKNAME}"]'
+              history: 90d
+              params: '{#BCKSTATUS}'
+              valuemap:
+                name: 'Veeam Backup status'
+              tags:
+                - tag: metric
+                  value: status
+                - tag: target
+                  value: veeam
+          trigger_prototypes:
+            - uuid: 99bdd916b98545898901c52b8da7324f
+              expression: 'last(/Veeam backup/vbck.status["{#BCKNAME}"])=3 and last(/Veeam backup/vbck.lastrun["{#BCKNAME}"])<>0 and last(/Veeam backup/vbck.period["{#BCKNAME}"])<>0 and last(/Veeam backup/vbck.info["{#BCKNAME}"])<>0'
+              name: '{#BCKNAME} in failed state.'
+              opdata: '{ITEM.LASTVALUE4}, Last run: {ITEM.LASTVALUE2} (Period: {ITEM.LASTVALUE3})'
+              priority: HIGH
+              manual_close: 'YES'
+              tags:
+                - tag: target
+                  value: veeam
+            - uuid: e49dbc56f35241a5bcb4e1747a5ea081
+              expression: 'last(/Veeam backup/vbck.status["{#BCKNAME}"])=2 and last(/Veeam backup/vbck.lastrun["{#BCKNAME}"])<>0 and last(/Veeam backup/vbck.period["{#BCKNAME}"])<>0 and last(/Veeam backup/vbck.info["{#BCKNAME}"])<>0'
+              name: '{#BCKNAME} in warning state.'
+              opdata: '{ITEM.LASTVALUE4}, Last run: {ITEM.LASTVALUE2} (Period: {ITEM.LASTVALUE3})'
+              priority: WARNING
+              manual_close: 'YES'
+              tags:
+                - tag: target
+                  value: veeam
+            - uuid: 3f38bbc792174aef9f6c75449a9ac706
+              expression: 'last(/Veeam backup/vbck.status["{#BCKNAME}"])=4 and last(/Veeam backup/vbck.lastrun["{#BCKNAME}"])<>0 and last(/Veeam backup/vbck.period["{#BCKNAME}"])<>0 and last(/Veeam backup/vbck.info["{#BCKNAME}"])<>0'
+              name: '{#BCKNAME} is disabled'
+              opdata: '{ITEM.LASTVALUE4}, Last run: {ITEM.LASTVALUE2} (Period: {ITEM.LASTVALUE3})'
+              priority: INFO
+              manual_close: 'YES'
+              tags:
+                - tag: target
+                  value: veeam
+            - uuid: d6985697980346df854c28f389bc5e6d
+              expression: 'last(/Veeam backup/vbck.status["{#BCKNAME}"])=8 and last(/Veeam backup/vbck.lastrun["{#BCKNAME}"])<>0 and last(/Veeam backup/vbck.period["{#BCKNAME}"])<>0 and last(/Veeam backup/vbck.info["{#BCKNAME}"])<>0'
+              name: '{#BCKNAME} is missing. (Last run time older than period)'
+              opdata: '{ITEM.LASTVALUE4}, Last run: {ITEM.LASTVALUE2} (Period: {ITEM.LASTVALUE3})'
+              priority: HIGH
+              manual_close: 'YES'
+              tags:
+                - tag: target
+                  value: veeam
+            - uuid: 85f6ad0f29a54bc4b15116ecb433abbc
+              expression: 'last(/Veeam backup/vbck.status["{#BCKNAME}"])=5 and last(/Veeam backup/vbck.lastrun["{#BCKNAME}"])<>0 and last(/Veeam backup/vbck.period["{#BCKNAME}"])<>0 and last(/Veeam backup/vbck.info["{#BCKNAME}"])<>0'
+              name: '{#BCKNAME} is not scheduled'
+              opdata: '{ITEM.LASTVALUE4}, Last run: {ITEM.LASTVALUE2} (Period: {ITEM.LASTVALUE3})'
+              priority: INFO
+              manual_close: 'YES'
+              tags:
+                - tag: target
+                  value: veeam
+            - uuid: 66838d5619b642198c439bde79b6a366
+              expression: 'last(/Veeam backup/vbck.status["{#BCKNAME}"])=7 and last(/Veeam backup/vbck.lastrun["{#BCKNAME}"])<>0 and last(/Veeam backup/vbck.period["{#BCKNAME}"])<>0 and last(/Veeam backup/vbck.info["{#BCKNAME}"])<>0'
+              name: '{#BCKNAME} is running'
+              opdata: '{ITEM.LASTVALUE4}, Last run: {ITEM.LASTVALUE2} (Period: {ITEM.LASTVALUE3})'
+              priority: INFO
+              manual_close: 'YES'
+              tags:
+                - tag: target
+                  value: veeam
+            - uuid: c89f47132019491d87673d28bb860442
+              expression: 'last(/Veeam backup/vbck.status["{#BCKNAME}"])=6 and last(/Veeam backup/vbck.lastrun["{#BCKNAME}"])<>0 and last(/Veeam backup/vbck.period["{#BCKNAME}"])<>0 and last(/Veeam backup/vbck.info["{#BCKNAME}"])<>0'
+              name: '{#BCKNAME} status is unknown'
+              opdata: '{ITEM.LASTVALUE4}, Last run: {ITEM.LASTVALUE2} (Period: {ITEM.LASTVALUE3})'
+              priority: INFO
+              manual_close: 'YES'
+              tags:
+                - tag: target
+                  value: veeam
+          master_item:
+            key: 'vfs.file.contents["C:\ZAgent\veeamresult.txt",UTF-8]'
+      tags:
+        - tag: class
+          value: software
+        - tag: target
+          value: veeam
+      valuemaps:
+        - uuid: 03e4fd976b91491e8c09ba7ffe77e226
+          name: 'Veeam Backup status'
+          mappings:
+            - value: '1'
+              newvalue: Success
+            - value: '2'
+              newvalue: Warning
+            - value: '3'
+              newvalue: Error
+            - value: '4'
+              newvalue: Disabled
+            - value: '5'
+              newvalue: 'Not scheduled'
+            - value: '6'
+              newvalue: Unknown
+            - value: '7'
+              newvalue: Running
+            - value: '8'
+              newvalue: Missing
+            - value: '9'
+              newvalue: Continuous

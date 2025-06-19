@@ -1,0 +1,71 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+    - uuid: a571c0d144b14fd4a87a9d9b2aa9fcd6
+      name: Templates/Applications
+  templates:
+    - uuid: fab2201ac7fe475797692d49d56c6dfc
+      template: 'Log monitoring by Zabbix Agent'
+      name: 'Log monitoring by Zabbix Agent'
+      description: 'Customizable log reading and alerting'
+      groups:
+        - name: Templates/Applications
+      discovery_rules:
+        - uuid: cfd5703ca7d84baea6234c4b55df5034
+          name: 'Discovery logfiles to be filtered'
+          type: SCRIPT
+          key: logcheck.discovery
+          delay: 1h
+          params: 'return ''{$LOGCHECK}'';'
+          lifetime: 30d
+          item_prototypes:
+            - uuid: 2411550b062645479d24e7cf1b09ab46
+              name: '{#LOGFILE} with filter "{#FILTER}"'
+              type: ZABBIX_ACTIVE
+              key: 'log[{#LOGFILE},{#FILTER},{#SEVERITY}]'
+              delay: 5m
+              history: 90d
+              value_type: LOG
+              trends: '0'
+              trigger_prototypes:
+                - uuid: 67fd661013624af39dbd8f63d0095845
+                  expression: 'logeventid(/Log monitoring by Zabbix Agent/log[{#LOGFILE},{#FILTER},{#SEVERITY}])<>0 and {#SEVERITY}=1'
+                  name: '{ITEM.VALUE}'
+                  opdata: '{ITEM.VALUE}'
+                  priority: INFO
+                  type: MULTIPLE
+                  manual_close: 'YES'
+                - uuid: d298de2e8e6f47d3b82ce868921db599
+                  expression: 'logeventid(/Log monitoring by Zabbix Agent/log[{#LOGFILE},{#FILTER},{#SEVERITY}])<>0 and {#SEVERITY}=2'
+                  name: '{ITEM.VALUE}'
+                  opdata: '{ITEM.VALUE}'
+                  priority: WARNING
+                  type: MULTIPLE
+                  manual_close: 'YES'
+                - uuid: ea003c783e91461d8a33408feda114ba
+                  expression: 'logeventid(/Log monitoring by Zabbix Agent/log[{#LOGFILE},{#FILTER},{#SEVERITY}])<>0 and {#SEVERITY}=3'
+                  name: '{ITEM.VALUE}'
+                  opdata: '{ITEM.VALUE}'
+                  priority: AVERAGE
+                  type: MULTIPLE
+                  manual_close: 'YES'
+                - uuid: 1cee20009a3444b9becce2b101c1cb61
+                  expression: 'logeventid(/Log monitoring by Zabbix Agent/log[{#LOGFILE},{#FILTER},{#SEVERITY}])<>0 and {#SEVERITY}=4'
+                  name: '{ITEM.VALUE}'
+                  opdata: '{ITEM.VALUE}'
+                  priority: HIGH
+                  type: MULTIPLE
+                  manual_close: 'YES'
+                - uuid: 676d59f23f9c40f799995f88e37addc3
+                  expression: 'logeventid(/Log monitoring by Zabbix Agent/log[{#LOGFILE},{#FILTER},{#SEVERITY}])<>0 and {#SEVERITY}=5'
+                  name: '{ITEM.VALUE}'
+                  opdata: '{ITEM.VALUE}'
+                  priority: DISASTER
+                  type: MULTIPLE
+                  manual_close: 'YES'
+      tags:
+        - tag: target
+          value: log
+      macros:
+        - macro: '{$LOGCHECK}'
+          value: '{"data":[{"{#LOGFILE}":"","{#FILTER}":"","{#SEVERITY}":"2"}]}'

@@ -1,0 +1,52 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+    - uuid: a571c0d144b14fd4a87a9d9b2aa9fcd6
+      name: Templates/Applications
+  templates:
+    - uuid: 9a8c0076cfc34353873b629ed829177f
+      template: 'DNS szinkron check'
+      name: 'DNS szinkron check'
+      groups:
+        - name: Templates/Applications
+      items:
+        - uuid: 8fa79cca45ce426db8db1e8d82cb4875
+          name: '{$DNS_NAME} - {$DNS_CHECK_IP_1}'
+          key: 'net.dns.record[{$DNS_CHECK_IP_1},{$DNS_NAME},SOA,2,1]'
+          history: 90d
+          value_type: CHAR
+          trends: '0'
+          triggers:
+            - uuid: e8871a9b501e49baba1afa1c94bcdf97
+              expression: 'nodata(/DNS szinkron check/net.dns.record[{$DNS_CHECK_IP_1},{$DNS_NAME},SOA,2,1],600s)=1'
+              recovery_mode: RECOVERY_EXPRESSION
+              recovery_expression: 'nodata(/DNS szinkron check/net.dns.record[{$DNS_CHECK_IP_1},{$DNS_NAME},SOA,2,1],1s)=0'
+              name: '{$DNS_NAME} - {$DNS_CHECK_IP_1} nem kap választ.'
+              priority: AVERAGE
+        - uuid: 49c8f38e6188472b95fd79a1c895001e
+          name: '{$DNS_NAME} - {$DNS_CHECK_IP_2}'
+          key: 'net.dns.record[{$DNS_CHECK_IP_2},{$DNS_NAME},SOA,2,1]'
+          history: 90d
+          value_type: CHAR
+          trends: '0'
+          triggers:
+            - uuid: 21c90e23333847929285228dc1c9ceca
+              expression: 'nodata(/DNS szinkron check/net.dns.record[{$DNS_CHECK_IP_2},{$DNS_NAME},SOA,2,1],600s)=1'
+              recovery_mode: RECOVERY_EXPRESSION
+              recovery_expression: 'nodata(/DNS szinkron check/net.dns.record[{$DNS_CHECK_IP_2},{$DNS_NAME},SOA,2,1],1s)=0'
+              name: '{$DNS_NAME} - {$DNS_CHECK_IP_2} nem kap választ.'
+              priority: AVERAGE
+      macros:
+        - macro: '{$DNS_CHECK_IP_1}'
+          value: 127.0.0.1
+        - macro: '{$DNS_CHECK_IP_2}'
+          value: 127.0.0.1
+        - macro: '{$DNS_NAME}'
+          value: localhost
+  triggers:
+    - uuid: 3d0fc260e2e341fb84b0f969d36ebabc
+      expression: 'last(/DNS szinkron check/net.dns.record[{$DNS_CHECK_IP_1},{$DNS_NAME},SOA,2,1])<>last(/DNS szinkron check/net.dns.record[{$DNS_CHECK_IP_2},{$DNS_NAME},SOA,2,1])'
+      recovery_mode: RECOVERY_EXPRESSION
+      recovery_expression: 'last(/DNS szinkron check/net.dns.record[{$DNS_CHECK_IP_1},{$DNS_NAME},SOA,2,1])=last(/DNS szinkron check/net.dns.record[{$DNS_CHECK_IP_2},{$DNS_NAME},SOA,2,1])'
+      name: '{$DNS_NAME} nincs szinkronban'
+      priority: AVERAGE

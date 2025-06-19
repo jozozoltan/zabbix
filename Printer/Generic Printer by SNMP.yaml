@@ -1,0 +1,481 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+    - uuid: 7df96b18c230490a9a0a9e2307226338
+      name: Templates
+  templates:
+    - uuid: 01e25cdb86084092a16b557b10682cf0
+      template: 'Generic Printer by SNMP'
+      name: 'Generic Printer by SNMP'
+      groups:
+        - name: Templates
+      items:
+        - uuid: e522fd33d05a4f66854cc7da181b7a8c
+          name: 'ICMP ping'
+          type: SIMPLE
+          key: icmpping
+          history: 1w
+          valuemap:
+            name: 'Service state'
+          tags:
+            - tag: component
+              value: health
+            - tag: component
+              value: network
+          triggers:
+            - uuid: d4ab78db2ac3435db0e100594cac9e6d
+              expression: 'max(/Generic Printer by SNMP/icmpping,#3)=0'
+              name: 'Unavailable by ICMP ping'
+              priority: HIGH
+              description: |
+                Last value: {ITEM.LASTVALUE1}.
+                Last three attempts returned timeout.  Please check device connectivity.
+        - uuid: af4dcffdfa1e4953971db1d2df5a638e
+          name: 'ICMP loss'
+          type: SIMPLE
+          key: icmppingloss
+          history: 1w
+          value_type: FLOAT
+          units: '%'
+          tags:
+            - tag: component
+              value: health
+            - tag: component
+              value: network
+          triggers:
+            - uuid: ec37d2c72b6642af947b95623d8dcba8
+              expression: 'min(/Generic Printer by SNMP/icmppingloss,5m)>{$ICMP_LOSS_WARN} and min(/Generic Printer by SNMP/icmppingloss,5m)<100'
+              name: 'High ICMP ping loss'
+              opdata: 'Loss: {ITEM.LASTVALUE1}'
+              priority: WARNING
+              dependencies:
+                - name: 'Unavailable by ICMP ping'
+                  expression: 'max(/Generic Printer by SNMP/icmpping,#3)=0'
+        - uuid: 725d5210ed0f4dea86e059acc2feaf9b
+          name: 'ICMP response time'
+          type: SIMPLE
+          key: icmppingsec
+          history: 1w
+          value_type: FLOAT
+          units: s
+          tags:
+            - tag: component
+              value: health
+            - tag: component
+              value: network
+          triggers:
+            - uuid: 85ba3b0e8dc04d5ca153eb8ce9e89b9d
+              expression: 'avg(/Generic Printer by SNMP/icmppingsec,3m)>{$ICMP_RESPONSE_TIME_WARN}'
+              name: 'High ICMP ping response time'
+              opdata: 'Value: {ITEM.LASTVALUE1}'
+              priority: WARNING
+              dependencies:
+                - name: 'High ICMP ping loss'
+                  expression: 'min(/Generic Printer by SNMP/icmppingloss,5m)>{$ICMP_LOSS_WARN} and min(/Generic Printer by SNMP/icmppingloss,5m)<100'
+                - name: 'Unavailable by ICMP ping'
+                  expression: 'max(/Generic Printer by SNMP/icmpping,#3)=0'
+        - uuid: 719608046cab47ebbb6289306c744099
+          name: 'SNMP traps (fallback)'
+          type: SNMP_TRAP
+          key: snmptrap.fallback
+          delay: '0'
+          history: 1w
+          value_type: LOG
+          trends: '0'
+          description: 'The item is used to collect all SNMP traps unmatched by other snmptrap items'
+          logtimefmt: 'hh:mm:sszyyyy/MM/dd'
+          tags:
+            - tag: component
+              value: network
+        - uuid: 45d4da83ae364c559b6246e707f079a6
+          name: 'System contact details'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.2.1.1.4.0
+          key: 'system.contact[sysContact.0]'
+          delay: 15m
+          history: 1w
+          value_type: CHAR
+          trends: '0'
+          description: |
+            MIB: SNMPv2-MIB
+            The textual identification of the contact person for this managed node, together with information on how to contact this person.  If no contact information is known, the value is the zero-length string.
+          inventory_link: CONTACT
+          preprocessing:
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 12h
+          tags:
+            - tag: component
+              value: system
+        - uuid: 283257b9b7864c86b62783a3a2ebfedb
+          name: 'System description'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.2.1.1.1.0
+          key: 'system.descr[sysDescr.0]'
+          delay: 15m
+          history: 1w
+          value_type: CHAR
+          trends: '0'
+          description: |
+            MIB: SNMPv2-MIB
+            A textual description of the entity. This value should
+            include the full name and version identification of the system's hardware type, software operating-system, and
+            networking software.
+          preprocessing:
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 12h
+          tags:
+            - tag: component
+              value: system
+        - uuid: 833b79eaf6584bce901523130a37f20b
+          name: 'Uptime (hardware)'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.2.1.25.1.1.0
+          key: 'system.hw.uptime[hrSystemUptime.0]'
+          delay: 30s
+          history: 1w
+          trends: '0'
+          units: uptime
+          description: |
+            MIB: HOST-RESOURCES-MIB
+            The amount of time since this host was last initialized. Note that this is different from sysUpTime in the SNMPv2-MIB [RFC1907] because sysUpTime is the uptime of the network management portion of the system.
+          preprocessing:
+            - type: CHECK_NOT_SUPPORTED
+              parameters:
+                - '-1'
+              error_handler: CUSTOM_VALUE
+              error_handler_params: '0'
+            - type: MULTIPLIER
+              parameters:
+                - '0.01'
+          tags:
+            - tag: component
+              value: system
+        - uuid: 6a10da7154b84f12a40de0d8b6f19d42
+          name: 'System location'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.2.1.1.6.0
+          key: 'system.location[sysLocation.0]'
+          delay: 15m
+          history: 1w
+          value_type: CHAR
+          trends: '0'
+          description: |
+            MIB: SNMPv2-MIB
+            The physical location of this node (e.g., `telephone closet, 3rd floor').  If the location is unknown, the value is the zero-length string.
+          inventory_link: LOCATION
+          preprocessing:
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 12h
+          tags:
+            - tag: component
+              value: system
+        - uuid: e1420e76f4884fa3a6a4890eb5c6d871
+          name: 'System name'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.2.1.1.5.0
+          key: system.name
+          delay: 15m
+          history: 1w
+          value_type: CHAR
+          trends: '0'
+          description: |
+            MIB: SNMPv2-MIB
+            An administratively-assigned name for this managed node.By convention, this is the node's fully-qualified domain name.  If the name is unknown, the value is the zero-length string.
+          preprocessing:
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 12h
+          tags:
+            - tag: component
+              value: system
+          triggers:
+            - uuid: 680a12efb6ea44439767c78c88e2cd43
+              expression: 'last(/Generic Printer by SNMP/system.name,#1)<>last(/Generic Printer by SNMP/system.name,#2) and length(last(/Generic Printer by SNMP/system.name))>0'
+              name: 'System name has changed'
+              event_name: 'System name has changed (new name: {ITEM.VALUE})'
+              priority: INFO
+              description: 'The name of the system has changed. Acknowledge to close the problem manually.'
+              manual_close: 'YES'
+              tags:
+                - tag: scope
+                  value: notice
+                - tag: scope
+                  value: security
+        - uuid: 90edbafee76c4d84af7610b1a2b9254b
+          name: 'Uptime (network)'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.2.1.1.3.0
+          key: 'system.net.uptime[sysUpTime.0]'
+          delay: 30s
+          history: 1w
+          trends: '0'
+          units: uptime
+          description: |
+            MIB: SNMPv2-MIB
+            The time (in hundredths of a second) since the network management portion of the system was last re-initialized.
+          preprocessing:
+            - type: MULTIPLIER
+              parameters:
+                - '0.01'
+          tags:
+            - tag: component
+              value: system
+        - uuid: f6c601a899034a56b625666030c5d5ae
+          name: 'System object ID'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.2.1.1.2.0
+          key: 'system.objectid[sysObjectID.0]'
+          delay: 15m
+          history: 1w
+          value_type: CHAR
+          trends: '0'
+          description: |
+            MIB: SNMPv2-MIB
+            The vendor's authoritative identification of the network management subsystem contained in the entity.  This value is allocated within the SMI enterprises subtree (1.3.6.1.4.1) and provides an easy and unambiguous means for determining`what kind of box' is being managed.  For example, if vendor`Flintstones, Inc.' was assigned the subtree1.3.6.1.4.1.4242, it could assign the identifier 1.3.6.1.4.1.4242.1.1 to its `Fred Router'.
+          preprocessing:
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 12h
+          tags:
+            - tag: component
+              value: system
+        - uuid: fc0dbb7c11f54f3d91b2e853d7e547cf
+          name: 'SNMP agent availability'
+          type: INTERNAL
+          key: 'zabbix[host,snmp,available]'
+          history: 1w
+          description: |
+            Availability of SNMP checks on the host. The value of this item corresponds to availability icons in the host list.
+            Possible value:
+            0 - not available
+            1 - available
+            2 - unknown
+          valuemap:
+            name: zabbix.host.available
+          tags:
+            - tag: component
+              value: health
+            - tag: component
+              value: network
+          triggers:
+            - uuid: bf1e3c1462c64c62b829b9c890cfefc5
+              expression: 'max(/Generic Printer by SNMP/zabbix[host,snmp,available],{$SNMP.TIMEOUT})=0'
+              name: 'No SNMP data collection'
+              opdata: 'Current state: {ITEM.LASTVALUE1}'
+              priority: AVERAGE
+              description: 'SNMP is not available for polling. Please check device connectivity and SNMP settings.'
+              dependencies:
+                - name: 'High ICMP ping loss'
+                  expression: 'min(/Generic Printer by SNMP/icmppingloss,5m)>{$ICMP_LOSS_WARN} and min(/Generic Printer by SNMP/icmppingloss,5m)<100'
+              tags:
+                - tag: scope
+                  value: availability
+      discovery_rules:
+        - uuid: c4e81065a7ca4d44921ddec278281c8c
+          name: 'Printer Alert Discovery'
+          type: SNMP_AGENT
+          snmp_oid: 'discover[{#SNMPALERTSEVERITY},Printer-MIB::prtAlertSeverityLevel.1,{#SNMPALERTCODE},Printer-MIB::prtAlertCode.1,{#SNMPALERTDESC},Printer-MIB::prtAlertDescription.1]'
+          key: prtAlert.discovery
+          delay: 15m
+          filter:
+            conditions:
+              - macro: '{#SNMPALERTCODE}'
+                value: '{$SNMPALERTCODE_EXCLUDE}'
+                operator: NOT_MATCHES_REGEX
+                formulaid: A
+              - macro: '{#SNMPALERTSEVERITY}'
+                value: '{$SNMPALERTSEVERITY_EXCLUDE}'
+                operator: NOT_MATCHES_REGEX
+                formulaid: B
+          lifetime_type: DELETE_IMMEDIATELY
+          lifetime: '0'
+          item_prototypes:
+            - uuid: 60641a47f8aa48b4909e79cb79213e6e
+              name: 'Alert #{#SNMPINDEX} Code'
+              type: SNMP_AGENT
+              snmp_oid: 'Printer-MIB::prtAlertCode.1.{#SNMPINDEX}'
+              key: 'prtAlertCode[{#SNMPINDEX}]'
+              history: 90d
+              valuemap:
+                name: 'Alert code'
+              tags:
+                - tag: Application
+                  value: 'Printer alert'
+            - uuid: 8ce9b166876747a69353e10774b5e403
+              name: 'Alert #{#SNMPINDEX} Description'
+              type: SNMP_AGENT
+              snmp_oid: 'Printer-MIB::prtAlertDescription.1.{#SNMPINDEX}'
+              key: 'prtAlertDescription[{#SNMPINDEX}]'
+              history: 90d
+              value_type: TEXT
+              trends: '0'
+              tags:
+                - tag: Application
+                  value: 'Printer alert'
+            - uuid: da1223ac753846ee93e3e56aaf5cd742
+              name: 'Alert #{#SNMPINDEX} Severity'
+              type: SNMP_AGENT
+              snmp_oid: 'Printer-MIB::prtAlertSeverityLevel.1.{#SNMPINDEX}'
+              key: 'prtAlertSeverity[{#SNMPINDEX}]'
+              history: 90d
+              tags:
+                - tag: Application
+                  value: 'Printer alert'
+          trigger_prototypes:
+            - uuid: f1c98890bb3442d193c690fb0d2236fc
+              expression: 'last(/Generic Printer by SNMP/prtAlertSeverity[{#SNMPINDEX}])=3 and last(/Generic Printer by SNMP/prtAlertDescription[{#SNMPINDEX}])<>""'
+              name: 'Error: {#SNMPALERTDESC}'
+              priority: HIGH
+              tags:
+                - tag: Application
+                  value: 'Printer alert'
+            - uuid: 7420796eb4a24489b01bdd2d73a1c4f4
+              expression: 'last(/Generic Printer by SNMP/prtAlertSeverity[{#SNMPINDEX}])=4 and last(/Generic Printer by SNMP/prtAlertDescription[{#SNMPINDEX}])<>""'
+              name: 'Warning: {#SNMPALERTDESC}'
+              priority: WARNING
+              tags:
+                - tag: Application
+                  value: 'Printer alert'
+      tags:
+        - tag: target
+          value: printer
+      macros:
+        - macro: '{$ICMP_LOSS_WARN}'
+          value: '20'
+        - macro: '{$ICMP_RESPONSE_TIME_WARN}'
+          value: '0.15'
+        - macro: '{$SNMP.TIMEOUT}'
+          value: 5m
+        - macro: '{$SNMPALERTCODE_EXCLUDE}'
+          value: '^(?:1|2|503|504|807|808)$'
+        - macro: '{$SNMPALERTSEVERITY_EXCLUDE}'
+          value: '^(?:1|2)$'
+      valuemaps:
+        - uuid: b87e71b7eac24da6bfd97390081f3338
+          name: 'Alert code'
+          mappings:
+            - value: '1'
+              newvalue: other
+            - value: '2'
+              newvalue: unknown
+            - value: '3'
+              newvalue: coverOpen
+            - value: '4'
+              newvalue: coverClosed
+            - value: '5'
+              newvalue: interlockOpen
+            - value: '6'
+              newvalue: interlockClosed
+            - value: '7'
+              newvalue: configurationChange
+            - value: '8'
+              newvalue: jam
+            - value: '501'
+              newvalue: doorOpen
+            - value: '502'
+              newvalue: doorClosed
+            - value: '503'
+              newvalue: powerUp
+            - value: '504'
+              newvalue: powerDown
+            - value: '801'
+              newvalue: inputMediaTrayMissing
+            - value: '802'
+              newvalue: inputMediaSizeChange
+            - value: '803'
+              newvalue: inputMediaWeightChange
+            - value: '804'
+              newvalue: inputMediaTypeChange
+            - value: '805'
+              newvalue: inputMediaColorChange
+            - value: '806'
+              newvalue: inputMediaFormPartsChange
+            - value: '807'
+              newvalue: inputMediaSupplyLow
+            - value: '808'
+              newvalue: inputMediaSupplyEmpty
+            - value: '901'
+              newvalue: outputMediaTrayMissing
+            - value: '902'
+              newvalue: outputMediaTrayAlmostFull
+            - value: '903'
+              newvalue: outputMediaTrayFull
+            - value: '1001'
+              newvalue: markerFuserUnderTemperature
+            - value: '1002'
+              newvalue: markerFuserOverTemperature
+            - value: '1101'
+              newvalue: markerTonerEmpty
+            - value: '1102'
+              newvalue: markerInkEmpty
+            - value: '1103'
+              newvalue: markerPrintRibbonEmpty
+            - value: '1104'
+              newvalue: markerTonerAlmostEmpty
+            - value: '1105'
+              newvalue: markerInkAlmostEmpty
+            - value: '1106'
+              newvalue: markerPrintRibbonAlmostEmpty
+            - value: '1107'
+              newvalue: markerWasteTonerReceptacleAlmostFull
+            - value: '1108'
+              newvalue: markerWasteInkReceptacleAlmostFull
+            - value: '1109'
+              newvalue: markerWasteTonerReceptacleFull
+            - value: '1110'
+              newvalue: markerWasteInkReceptacleFull
+            - value: '1111'
+              newvalue: markerOpcLifeAlmostOver
+            - value: '1112'
+              newvalue: markerOpcLifeOver
+            - value: '1113'
+              newvalue: markerDeveloperAlmostEmpty
+            - value: '1114'
+              newvalue: markerDeveloperEmpty
+            - value: '1301'
+              newvalue: mediaPathMediaTrayMissing
+            - value: '1302'
+              newvalue: mediaPathMediaTrayAlmostFull
+            - value: '1303'
+              newvalue: mediaPathMediaTrayFull
+            - value: '1501'
+              newvalue: interpreterMemoryIncrease
+            - value: '1502'
+              newvalue: interpreterMemoryDecrease
+            - value: '1503'
+              newvalue: interpreterCartridgeAdded
+            - value: '1504'
+              newvalue: interpreterCartridgeDeleted
+            - value: '1505'
+              newvalue: interpreterResourceAdded
+            - value: '1506'
+              newvalue: interpreterResourceDeleted
+            - value: '1507'
+              newvalue: interpreterResourceUnavailable
+        - uuid: 89b9063f8873408b8bf514b495dd5c8d
+          name: 'Service state'
+          mappings:
+            - value: '0'
+              newvalue: Down
+            - value: '1'
+              newvalue: Up
+        - uuid: 292fc18a00114397bf01420745e9f2e9
+          name: zabbix.host.available
+          mappings:
+            - value: '0'
+              newvalue: 'not available'
+            - value: '1'
+              newvalue: available
+            - value: '2'
+              newvalue: unknown
+  triggers:
+    - uuid: 34aefb2785564b2cb32737a39ea0f103
+      expression: '(last(/Generic Printer by SNMP/system.hw.uptime[hrSystemUptime.0])>0 and last(/Generic Printer by SNMP/system.hw.uptime[hrSystemUptime.0])<10m) or (last(/Generic Printer by SNMP/system.hw.uptime[hrSystemUptime.0])=0 and last(/Generic Printer by SNMP/system.net.uptime[sysUpTime.0])<10m)'
+      name: 'Host has been restarted'
+      event_name: 'Generic SNMP: {HOST.NAME} has been restarted (uptime < 10m)'
+      priority: WARNING
+      description: 'Uptime is less than 10 minutes.'
+      manual_close: 'YES'

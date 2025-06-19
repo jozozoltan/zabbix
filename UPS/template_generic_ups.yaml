@@ -1,0 +1,175 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+    - uuid: 7df96b18c230490a9a0a9e2307226338
+      name: Templates
+  templates:
+    - uuid: cbeaab9841a345499e64b89158d1063a
+      template: template_generic_ups
+      name: template_generic_ups
+      templates:
+        - name: 'Generic by SNMP'
+      groups:
+        - name: Templates
+      items:
+        - uuid: cfdb78f1894a43ab849442d1e97dd11c
+          name: 'Battery Charge Status'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.2.1.33.1.2.1.0
+          key: upsBatteryStatus
+          history: 90d
+          description: |
+            The indication of the capacity remaining in the UPS
+            system's batteries. A value of batteryNormal
+            indicates that the remaining run-time is greater than
+            upsConfigLowBattTime. A value of batteryLow indicates
+            that the remaining battery run-time is less than or
+            equal to upsConfigLowBattTime. A value of
+            batteryDepleted indicates that the UPS will be unable
+            to sustain the present load when and if the utility
+            power is lost (including the possibility that the
+            utility power is currently absent and the UPS is
+            unable to sustain the output).
+            unknown(1),
+            batteryNormal(2),
+            batteryLow(3),
+            batteryDepleted(4)
+          valuemap:
+            name: battery_charge_status_generic
+          tags:
+            - tag: Application
+              value: Status
+        - uuid: 099e7cc8bca741c198210b5cd81cb79e
+          name: 'Battery Temperature'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.2.1.33.1.2.1.0
+          key: upsBatteryTemperature
+          history: 90d
+          units: °C
+          description: |
+            The ambient temperature at or near the UPS Battery
+            casing.
+          valuemap:
+            name: battery_charge_status_generic
+          tags:
+            - tag: Application
+              value: Status
+        - uuid: a6446031e77a4affb9dcf02d084b8f4c
+          name: 'Estimated Charge Remaining (percent)'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.2.1.33.1.2.4.0
+          key: upsEstimatedChargeRemaining
+          history: 90d
+          units: '%'
+          description: upsEstimatedChargeRemaining
+          tags:
+            - tag: Application
+              value: Status
+        - uuid: 3d1894049a974f2fba3f32907544f8b1
+          name: 'Estimated Minutes Remaining'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.2.1.33.1.2.3.0
+          key: upsEstimatedMinutesRemaining
+          history: 90d
+          units: m
+          description: |
+            An estimate of the time to battery charge depletion
+            under the present load conditions if the utility power
+            is off and remains off, or if it were to be lost and
+            remain off.
+          valuemap:
+            name: battery_charge_status_generic
+          tags:
+            - tag: Application
+              value: Status
+        - uuid: 263c7579d71b4c77ba7949873c2540da
+          name: Manufacturer
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.2.1.33.1.1.1.0
+          key: upsIdentManufacturer
+          history: 90d
+          value_type: TEXT
+          trends: '0'
+          description: 'The name of the UPS manufacturer.'
+        - uuid: 6cd48c02204e4e5c934a8b5638cbd274
+          name: Model
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.2.1.33.1.1.2.0
+          key: upsIdentModel
+          history: 90d
+          value_type: TEXT
+          trends: '0'
+          description: 'The UPS Model designation.'
+        - uuid: c34d58985abd48caa5a393897c8421b1
+          name: 'Input Voltage'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.2.1.33.1.3.3.1.3.1
+          key: upsInputVoltage
+          history: 90d
+          units: V
+          description: 'The magnitude of the present input voltage.'
+          valuemap:
+            name: battery_charge_status_generic
+          tags:
+            - tag: Application
+              value: Status
+        - uuid: 9a430bb3909f437ab84984607ce9ce53
+          name: 'Seconds On Battery'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.2.1.33.1.2.2.0
+          key: upsSecondsOnBattery
+          history: 90d
+          units: s
+          description: |
+            If the unit is on battery power, the elapsed time
+            since the UPS last switched to battery power, or the
+            time since the network management subsystem was last
+            restarted, whichever is less. Zero shall be returned
+            if the unit is not on battery power.
+          valuemap:
+            name: battery_charge_status_generic
+          tags:
+            - tag: Application
+              value: Status
+      tags:
+        - tag: target
+          value: ups
+      macros:
+        - macro: '{$BATTERY_ALERT}'
+          value: '20'
+        - macro: '{$BATTERY_WARN}'
+          value: '50'
+      valuemaps:
+        - uuid: 7355a3bf121c4d048d8273141e473b01
+          name: battery_charge_status_generic
+          mappings:
+            - value: 'Battery Depleted'
+              newvalue: '4'
+            - value: 'Battery Low'
+              newvalue: '3'
+            - value: 'Battery Normal'
+              newvalue: '2'
+            - value: Unknown
+              newvalue: '1'
+  triggers:
+    - uuid: d52c4f31aed44ced8b4bae6dcc2d1b14
+      expression: 'last(/template_generic_ups/upsEstimatedChargeRemaining)<{$BATTERY_ALERT} and last(/template_generic_ups/upsEstimatedMinutesRemaining)<>-1 and last(/template_generic_ups/upsSecondsOnBattery)>0'
+      recovery_mode: RECOVERY_EXPRESSION
+      recovery_expression: 'last(/template_generic_ups/upsEstimatedChargeRemaining)>{$BATTERY_ALERT} or last(/template_generic_ups/upsSecondsOnBattery)=0'
+      name: '{HOST.NAME} Battery charge less than {$BATTERY_ALERT}'
+      opdata: '{ITEM.LASTVALUE1} ({ITEM.LASTVALUE2} left)'
+      priority: DISASTER
+    - uuid: c5ea4223840b45a08b1ca253a754fe07
+      expression: 'last(/template_generic_ups/upsEstimatedChargeRemaining)<{$BATTERY_WARN} and last(/template_generic_ups/upsEstimatedMinutesRemaining)<>-1 and last(/template_generic_ups/upsSecondsOnBattery)>0'
+      recovery_mode: RECOVERY_EXPRESSION
+      recovery_expression: 'last(/template_generic_ups/upsEstimatedChargeRemaining)>{$BATTERY_WARN} or last(/template_generic_ups/upsSecondsOnBattery)=0'
+      name: '{HOST.NAME} Battery charge less than {$BATTERY_WARN}'
+      opdata: '{ITEM.LASTVALUE1} ({ITEM.LASTVALUE2} left)'
+      priority: HIGH
+    - uuid: f3c98fc3c6f04da1a8bfe84f7835b969
+      expression: 'last(/template_generic_ups/upsSecondsOnBattery)>0 and last(/template_generic_ups/upsEstimatedMinutesRemaining)<>-1 and last(/template_generic_ups/upsEstimatedChargeRemaining)<>-1'
+      recovery_mode: RECOVERY_EXPRESSION
+      recovery_expression: last(/template_generic_ups/upsSecondsOnBattery)=0
+      name: '{HOST.NAME} on Battery power'
+      opdata: '{ITEM.LASTVALUE3} ({ITEM.LASTVALUE2} left)'
+      priority: WARNING

@@ -1,0 +1,68 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+    - uuid: 7df96b18c230490a9a0a9e2307226338
+      name: Templates
+  templates:
+    - uuid: c5e43a8243ba4902842555a7a8db341d
+      template: 'Linux services by Zabbix agent'
+      name: 'Linux services by Zabbix agent'
+      groups:
+        - name: Templates
+      discovery_rules:
+        - uuid: bfaff5b95485449bbfd3f872ad2c0fde
+          name: 'Port check'
+          type: SCRIPT
+          key: ports.discovery
+          delay: 1h
+          params: |
+            return JSON.stringify({
+                data: "{$PORT_CHECK}".split(";").filter(function(e) { return e.trim() !== ""; }).map(function(e) {
+                    var parts = e.split(",");
+                    return {
+                        "{#PORTNUMBER}": parts[0] || "",
+                        "{#PORTTYPE}": parts[1] || ""
+                    };
+                })
+            });
+          item_prototypes:
+            - uuid: c451ac71e8c2403db25fc40aeecd3b76
+              name: '{#PORTTYPE} {#PORTNUMBER} status'
+              key: 'net.tcp.service[{#PORTTYPE},,{#PORTNUMBER}]'
+              trigger_prototypes:
+                - uuid: 5b722d4451264ac2b0845a0fea5a5b0e
+                  expression: 'max(/Linux services by Zabbix agent/net.tcp.service[{#PORTTYPE},,{#PORTNUMBER}],#3)=0'
+                  name: '{#PORTTYPE} {#PORTNUMBER} is down'
+                  priority: HIGH
+        - uuid: 2f69510bc8a241ceb41b4c18142a9b2a
+          name: 'Service check'
+          type: SCRIPT
+          key: services.discovery
+          delay: 1h
+          params: |
+            return JSON.stringify({
+                data: "{$SERVICE_CHECK}".split(";").filter(function(e) { return e.trim() !== ""; }).map(function(e) {
+                    var parts = e.split(",");
+                    return {
+                        "{#SERVICENAME}": parts[0] || "",
+                        "{#SERVICESTATUS}": parts[1] || "",
+                        "{#SERVICEPATH}": parts[2] || ""
+                    };
+                })
+            });
+          item_prototypes:
+            - uuid: 1084f6b691ca43a1bb08a49cc1ccad67
+              name: 'State of Service "{#SERVICENAME}{#SERVICEPATH}"'
+              key: 'proc.num[{#SERVICENAME},,{#SERVICESTATUS},{#SERVICEPATH}]'
+              trigger_prototypes:
+                - uuid: 9b6e0a4fbfcf4e38b91ad5977678e102
+                  expression: 'last(/Linux services by Zabbix agent/proc.num[{#SERVICENAME},,{#SERVICESTATUS},{#SERVICEPATH}],#3)=0'
+                  name: '"{#SERVICENAME}{#SERVICEPATH}" not running!'
+                  priority: HIGH
+      macros:
+        - macro: '{$PORT_CHECK}'
+          value: '{"data":[{"{#PORTNUMBER}":"","{#PORTTYPE}":"tcp"}]}'
+        - macro: '{$SERVICE_CHECK}'
+          value: '{"data":[{"{#SERVICENAME}":"","{#SERVICESTATUS}":"run"}]}'
+        - macro: '{$SPECIAL_SERVICE_CHECK}'
+          value: '{"data":[{"{#SERVICENAME}":"","{#SERVICESTATUS}":"run","{#SERVICEPATH}":""}]}'
