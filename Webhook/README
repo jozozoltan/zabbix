@@ -1,0 +1,21 @@
+sudo nano /etc/systemd/system/zabbix-webhook.service
+
+    [Unit]
+    Description=Zabbix Webhook Listener
+    After=network.target
+    
+    [Service]
+    ExecStart=/usr/bin/python3 /usr/lib/zabbix/externalscripts/webhook_listener.py
+    WorkingDirectory=/usr/lib/zabbix/externalscripts/
+    Restart=always
+    User=zabbix
+    Group=zabbix
+    StandardOutput=append:/var/log/zabbix-webhook.log
+    StandardError=append:/var/log/zabbix-webhook.log
+    
+    [Install]
+    WantedBy=multi-user.target
+
+sudo systemctl daemon-reload
+sudo systemctl start zabbix-webhook
+sudo systemctl enable zabbix-webhook
