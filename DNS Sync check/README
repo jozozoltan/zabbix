@@ -1,0 +1,6 @@
+To check if DNS data is in sync between 2 servers.
+
+Import template
+Fill out macros
+
+Will trigger if the 2 DNS servers provide different results, or one of those does not provide information
