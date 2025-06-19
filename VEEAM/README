@@ -1,0 +1,4 @@
+For agent, no prerequisites.
+
+For VBR, you need this module present:
+C:\Program Files\Veeam\Backup and Replication\Console\Veeam.Backup.PowerShell.dll
