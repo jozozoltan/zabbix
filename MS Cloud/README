@@ -1,3 +1,19 @@
+# PowerBI
+Uses API to query PowerBI's specified dataset's last run time and result.
+Create App on M365 with these permissions:
+
+Power BI Service
+Tenant.Read.All
+View all content in tenant
+Application
+
+Power BI Service
+Dataset.Read.All
+View all datasets
+Delegated
+
+# PowerBI
+Uses API to query if specified licence is present on specified user.
 Create App on M365 with these permissions:
 
 Microsoft Graph
@@ -13,14 +29,4 @@ Application
 Microsoft Graph
 User.Read.All
 Read all users' full profiles
-Delegated
-
-Power BI Service
-Tenant.Read.All
-View all content in tenant
-Application
-
-Power BI Service
-Dataset.Read.All
-View all datasets
 Delegated
