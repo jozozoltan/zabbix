@@ -1,3 +1,9 @@
+Listens for alerts incoming on port 5000.
+Triggers if Zabbix Trapper item receives a new value.
+If hostnames are the same, add the template to host. I suggest creating a fallback host with the template to trap any values that does not find the hostname.
+
+To set up Zabbix Server or Proxy to listen to Instana alerts:
+
 sudo nano /etc/systemd/system/zabbix-webhook.service
 
     [Unit]
