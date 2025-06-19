@@ -61,8 +61,6 @@ zabbix_export:
                   priority: HIGH
       macros:
         - macro: '{$PORT_CHECK}'
-          value: '{"data":[{"{#PORTNUMBER}":"","{#PORTTYPE}":"tcp"}]}'
+          value: 'portnum(eg:'443'),porttype(eg:'tcp')'
         - macro: '{$SERVICE_CHECK}'
-          value: '{"data":[{"{#SERVICENAME}":"","{#SERVICESTATUS}":"run"}]}'
-        - macro: '{$SPECIAL_SERVICE_CHECK}'
-          value: '{"data":[{"{#SERVICENAME}":"","{#SERVICESTATUS}":"run","{#SERVICEPATH}":""}]}'
+          value: 'service1,servicestatus(eg:'run'),servicepath(eg:'/usr/stuff.sh');service2,,;'
