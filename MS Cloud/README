@@ -1,0 +1,26 @@
+Create App on M365 with these permissions:
+
+Microsoft Graph
+LicenseAssignment.Read.All
+Read all license assignments.
+Application
+
+Microsoft Graph
+User.Read.All
+Read all users' full profiles
+Application
+
+Microsoft Graph
+User.Read.All
+Read all users' full profiles
+Delegated
+
+Power BI Service
+Tenant.Read.All
+View all content in tenant
+Application
+
+Power BI Service
+Dataset.Read.All
+View all datasets
+Delegated
