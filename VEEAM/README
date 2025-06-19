@@ -2,3 +2,5 @@ For agent, no prerequisites.
 
 For VBR, you need this module present:
 C:\Program Files\Veeam\Backup and Replication\Console\Veeam.Backup.PowerShell.dll
+
+Copy required script into C:\Zagent\check_veeamagent.ps1. If you copy elsewhere, modify base item on templates accordingly.
